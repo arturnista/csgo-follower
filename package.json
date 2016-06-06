@@ -1,0 +1,22 @@
+{
+  "name": "csgo-follower",
+  "version": "1.0.0",
+  "description": "Follow your CSGO games on twitter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arturnista/csgo-follower.git"
+  },
+  "author": "Artur Nista",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arturnista/csgo-follower/issues"
+  },
+  "homepage": "https://github.com/arturnista/csgo-follower#readme",
+  "dependencies": {
+    "twitter": "^1.3.0"
+  }
+}
