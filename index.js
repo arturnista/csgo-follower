@@ -144,6 +144,7 @@ var fnGetTeamDetails = function(htmlEvent, gameData){
 }
 
 function fnGamesScore(){
+    console.log("==== Trying to get");
     download(options, function(data){
         var $ = cheerio.load(data)
         var gameStr = ""
