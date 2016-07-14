@@ -7,20 +7,6 @@ var auth = require('./auth.js')
 
 var client = new Twitter(auth.twitter)
 
-var express = require('express')
-var app = express()
-var bodyParser = require('body-parser')
-app.set('views', __dirname + '/views')
-app.engine('html', require('ejs').renderFile)
-var port = process.env.port || 5000
-app.get('/', function(req, res){
-  res.send('https://twitter.com/csgo_games')
-})
-app.listen(port, function(){
-  console.log('Basic server is listening on port ' + port)
-})
-
-
 var tweet = function(tweetContent, fnSuccess){
     if(tweetContent.length > 140){
         tweetContent = tweetContent.substring(0, 137) + "..."
