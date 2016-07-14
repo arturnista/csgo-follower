@@ -55,7 +55,7 @@ function download(opt, callback) {
 }
 
 var fnGetGameScore = function(gameId, fnCallback){
-    request.post("http://esportlivescore.com/ajax/event_score.php", function(error, response, body){
+    request.post("http://esportlivescore.com/event_score_ajax", function(error, response, body){
         var gameData = {
             hasStarted: false
         }
@@ -111,11 +111,8 @@ var fnGetGameScore = function(gameId, fnCallback){
     })
 }
 var fnGetTeamDetails = function(htmlEvent, gameData){
-    var c = cheerio.load(htmlEvent.html())
-    c("td.participant-name span a").each(function(i, elem) {
-        var thisEvent = c(this)
+    var clearName = function(thisEvent){
         var teamName = thisEvent.html()
-
         teamName = teamName.replace(/\<img.*\>/g, "")
                             .replace(/\(ex\-.*/g, "")
                             // Remove common names
@@ -127,11 +124,22 @@ var fnGetTeamDetails = function(htmlEvent, gameData){
                             .replace('Ninjas in Pyjamas', 'Nip')
                             // Replace duplicated spaces
                             .replace(/\s+/g,' ')
-        if(teamName.length > 15){
-            teamName = teamName.substring(0, 14)
-        }
+        return teamName
+    }
 
-        gameData['team' + (i+1)].name = teamName
+    var c = cheerio.load(htmlEvent.html())
+    // Home team
+    c("td.team-name a").each(function(i, elem) {
+        if(i > 0){
+            return
+        }
+        gameData.team1.name = clearName(c(this))
+    })
+    c("tr.event-away-team a").each(function(i, elem) {
+        if(i > 0){
+            return
+        }
+        gameData.team2.name = clearName(c(this))
     })
 }
 
