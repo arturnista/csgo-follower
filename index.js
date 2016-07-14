@@ -9,6 +9,9 @@ var client = new Twitter(auth.twitter)
 
 var express = require('express')
 var app = express()
+var bodyParser = require('body-parser')
+app.set('views', __dirname + '/views')
+app.engine('html', require('ejs').renderFile)
 var port = process.env.port || 5000
 app.get('/', function(req, res){
   res.send('https://twitter.com/csgo_games')
