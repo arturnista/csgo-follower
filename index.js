@@ -210,6 +210,8 @@ function fnGamesScore(){
         }
     })
     setTimeout(fnGamesScore, 60000)
+    // ping the server
+    http.get("http://csgogames.herokuapp.com")
 }
 
 fnGamesScore()
