@@ -209,7 +209,7 @@ function fnGamesScore(){
             })
         }
     })
-    setTimeout(fnGamesScore, 30000)
+    setTimeout(fnGamesScore, 60000)
 }
 
 fnGamesScore()
