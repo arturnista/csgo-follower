@@ -55,60 +55,68 @@ function download(opt, callback) {
     })
 }
 
-var fnGetGameScore = function(gameId, fnCallback){
-    console.log(gameId)
+var fnGetGameScore = function(gamesId, fnCallback){
+    var eventId = ''
+    gamesId.forEach(function(id) {
+        eventId += '+' + id
+    })
+
     request.post("http://esportlivescore.com/event_score_ajax", function(error, response, body){
-        var gameData = {
-            hasStarted: false
-        }
         if(error){
             console.error("ERROR: " + error)
-            fnCallback(gameData)
+            fnCallback([])
         }
         if(response.statusCode !== 200){
             console.log("Status code: " + response.statusCode)
-            fnCallback(gameData)
+            fnCallback([])
         }
 
-        body = body.replace("#", "|")
-        bodySplited = body.split("|")
-        gameData.rawData = body
-        gameData.hasStarted = bodySplited[3]==="started"
-        gameData.startTime = JSON.parse(bodySplited[15])
+        var games = body.split('+')
+        var gamesProcessed = games.map(function(game) {
+            var gameData = {
+                hasStarted: false
+            }
+            game = game.replace("#", "|")
+            gameSplited = game.split("|")
+            gameData.rawData = game
+            gameData.hasStarted = gameSplited[3]==="started"
+            gameData.startTime = JSON.parse(gameSplited[15])
 
-        if(gameData.hasStarted){
-            gameData.team1 = {}
-            gameData.team2 = {}
-            team1Data = bodySplited[1].split("_")
-            team2Data = bodySplited[2].split("_")
+            if(gameData.hasStarted){
+                gameData.team1 = {}
+                gameData.team2 = {}
+                team1Data = gameSplited[1].split("_")
+                team2Data = gameSplited[2].split("_")
 
-            gameData.team1.gameScore = parseInt(team1Data[0])
-            gameData.team2.gameScore = parseInt(team2Data[0])
-            gameData.currentMap = gameData.team1.gameScore + gameData.team2.gameScore + 1
-            gameData.mapNumber = team1Data.length - 1
-            for (var i = 1;i < team1Data.length;i++) {
-                var mapStr = "map" + i
-                gameData.team1[mapStr] = {}
-                gameData.team2[mapStr] = {}
-                var score1 = parseInt(team1Data[i])
-                var score2 = parseInt(team2Data[i])
-                gameData.team1[mapStr].score = score1
-                gameData.team2[mapStr].score = score2
-                if(gameData.currentMap == i){
-                    if(score1 === undefined || score2 === undefined){
-                        gameData.hasStarted = false
-                        console.error('Score undefined.\nGD: ', gameData, '\nBody: ', body);
+                gameData.team1.gameScore = parseInt(team1Data[0])
+                gameData.team2.gameScore = parseInt(team2Data[0])
+                gameData.currentMap = gameData.team1.gameScore + gameData.team2.gameScore + 1
+                gameData.mapNumber = team1Data.length - 1
+                for (var i = 1;i < team1Data.length;i++) {
+                    var mapStr = "map" + i
+                    gameData.team1[mapStr] = {}
+                    gameData.team2[mapStr] = {}
+                    var score1 = parseInt(team1Data[i])
+                    var score2 = parseInt(team2Data[i])
+                    gameData.team1[mapStr].score = score1
+                    gameData.team2[mapStr].score = score2
+                    if(gameData.currentMap == i){
+                        if(score1 === undefined || score2 === undefined){
+                            gameData.hasStarted = false
+                            console.error('Score undefined.\nGD: ', gameData, '\nBody: ', body);
+                        }
+
+                        gameData.team1.currentScore = score1
+                        gameData.team2.currentScore = score2
                     }
-
-                    gameData.team1.currentScore = score1
-                    gameData.team2.currentScore = score2
                 }
             }
-        }
-        fnCallback(gameData)
+            return gameData
+        })
+        fnCallback(gamesProcessed)
     }).form({
         "submit": "submit",
-        "event_id": "+" + gameId
+        "event_id": eventId
     })
 }
 var fnGetTeamDetails = function(htmlEvent, gameData){
@@ -146,16 +154,28 @@ var fnGetTeamDetails = function(htmlEvent, gameData){
 
 function fnGamesScore(){
     console.log("==== Trying to get");
+    var gamesId = []
     download(options, function(data){
         var $ = cheerio.load(data)
-        var gameStr = ""
         var events = $("tr.event")
         var idx = 1
         events.each(function(i, elem) {
             var thisEvent = $(this)
             if(thisEvent.html().indexOf("csgo") !== -1){
                 var rawGameId = thisEvent.attr('id')
-                fnGetGameScore(rawGameId, function(gameData){
+                gamesId.push({
+                    id: rawGameId,
+                    event: thisEvent
+                })
+            }
+        })
+
+        if(gamesId.length > 0) {
+            var ids = gamesId.map(function (games) {return games.id})
+            var gameStr = ""
+            fnGetGameScore(ids, function(games){
+                games.forEach(function(gameData, idx) {
+                    var thisEvent = gamesId[idx].event
                     if(gameData.hasStarted){
                         fnGetTeamDetails(thisEvent, gameData)
                         var gameStrSufix = "BO" + gameData.mapNumber + " "
@@ -167,18 +187,15 @@ function fnGamesScore(){
                         }
                         gameStr += gameStrSufix + gameData.team1.name + team1MapScore + " " + gameData.team1.currentScore + " x " + gameData.team2.currentScore + " " + team2MapScore + gameData.team2.name + "\n"
                     }
-                    if(events.length === idx && gameStr !== ""){
-                        console.log("==== Scores updated")
-                        tweet(gameStr, function(tweetContent){
-                            console.log("==== Tweet published\n", tweetContent, "==== ====")
-                        })
-                    }
-                    idx++
                 })
-            }else{
-                idx++
-            }
-        })
+                if(gameStr !== ""){
+                    console.log("==== Scores updated")
+                    tweet(gameStr, function(tweetContent){
+                        console.log("==== Tweet published\n", tweetContent, "==== ====")
+                    })
+                }
+            })
+        }
     })
     setTimeout(fnGamesScore, 60000)
 }
