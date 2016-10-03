@@ -1,8 +1,27 @@
+var restify = require('restify')
+var server = restify.createServer()
+
+restify.CORS.ALLOW_HEADERS.push('Accept-Encoding')
+restify.CORS.ALLOW_HEADERS.push('Accept-Language')
+restify.CORS.ALLOW_HEADERS.push('Access-Control-Allow-Origin')
+restify.CORS.ALLOW_HEADERS.push('origin')
+server.use(restify.CORS({ credentials: true }))
+server.use(restify.bodyParser())
+server.use(restify.queryParser())
+
+server.get('/', function(req, res, next){
+    res.json(200, 'Hello there')
+})
+var port = 5000 || process.env.PORT
+server.listen(port, function(){
+    console.log("Server listening at " + port)
+})
+
+
 var Twitter = require('twitter')
 var http = require('http')
 var cheerio = require('cheerio')
 var request = require('request')
-var zlib = require('zlib')
 var auth = require('./auth.js')
 
 var client = new Twitter(auth.twitter)
@@ -178,7 +197,7 @@ function fnGamesScore(){
                     var thisEvent = gamesId[idx].event
                     if(gameData.hasStarted){
                         fnGetTeamDetails(thisEvent, gameData)
-                        var gameStrSufix = "BO" + gameData.mapNumber + " "
+                        var gameStrSufix = "BO" + gameData.mapNumber
                         var team1MapScore  = ""
                         var team2MapScore  = ""
                         if(gameData.mapNumber > 1){
@@ -191,7 +210,8 @@ function fnGamesScore(){
                 if(gameStr !== ""){
                     console.log("==== Scores updated")
                     tweet(gameStr, function(tweetContent){
-                        console.log("==== Tweet published\n", tweetContent, "==== ====")
+                        if(process.env.DEBUG) console.log("==== Debug mode\n", tweetContent, "==== ====")
+                        else console.log("==== Tweet published\n", tweetContent, "==== ====")
                     })
                 }
             })
@@ -201,14 +221,3 @@ function fnGamesScore(){
 }
 
 fnGamesScore()
-
-
-var restify = require('restify')
-var server = restify.createServer()
-server.get('/', function(req, res, next){
-    res.json(200, 'Hello there')
-})
-var port = 5000 || process.env.PORT
-server.listen(port, function(){
-    console.log("Server listening at 4004")
-})
