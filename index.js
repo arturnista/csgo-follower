@@ -11,6 +11,7 @@ var tweet = function(tweetContent, fnSuccess){
     if(tweetContent.length > 140){
         tweetContent = tweetContent.substring(0, 137) + "..."
     }
+    if(process.env.DEBUG) return fnSuccess(tweetContent)
     client.post('statuses/update', {status: tweetContent},  function(error, tweet, response){
         if(error){
             return console.error(error)
@@ -55,6 +56,7 @@ function download(opt, callback) {
 }
 
 var fnGetGameScore = function(gameId, fnCallback){
+    console.log(gameId)
     request.post("http://esportlivescore.com/event_score_ajax", function(error, response, body){
         var gameData = {
             hasStarted: false
@@ -106,7 +108,6 @@ var fnGetGameScore = function(gameId, fnCallback){
         fnCallback(gameData)
     }).form({
         "submit": "submit",
-        "gameId": 4,
         "event_id": "+" + gameId
     })
 }
@@ -129,7 +130,7 @@ var fnGetTeamDetails = function(htmlEvent, gameData){
 
     var c = cheerio.load(htmlEvent.html())
     // Home team
-    c("td.team-name a").each(function(i, elem) {
+    c("td.event-team-info a").each(function(i, elem) {
         if(i > 0){
             return
         }
