@@ -201,3 +201,14 @@ function fnGamesScore(){
 }
 
 fnGamesScore()
+
+
+var restify = require('restify')
+var server = restify.createServer()
+server.get('/', function(req, res, next){
+    res.json(200, 'Hello there')
+})
+var port = 5000 || process.env.PORT
+server.listen(port, function(){
+    console.log("Server listening at 4004")
+})
