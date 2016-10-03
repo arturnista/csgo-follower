@@ -1,25 +1,17 @@
-var restify = require('restify')
-var server = restify.createServer()
-
-restify.CORS.ALLOW_HEADERS.push('Accept-Encoding')
-restify.CORS.ALLOW_HEADERS.push('Accept-Language')
-restify.CORS.ALLOW_HEADERS.push('Access-Control-Allow-Origin')
-restify.CORS.ALLOW_HEADERS.push('origin')
-server.use(restify.CORS({ credentials: true }))
-server.use(restify.bodyParser())
-server.use(restify.queryParser())
-
-server.get('/', function(req, res, next){
-    res.json(200, 'Hello there')
-})
-var port = 5000 || process.env.PORT
-server.listen(port, function(){
-    console.log("Server listening at " + port)
-})
-
-
-var Twitter = require('twitter')
+/**********************************
+    Fake server for heroku
+**********************************/
 var http = require('http')
+var handle = function (req, res) {
+    res.end("hello there")
+}
+var server = http.createServer(handle)
+server.listen(process.env.PORT || 5000)
+
+/**********************************
+            Real app
+**********************************/
+var Twitter = require('twitter')
 var cheerio = require('cheerio')
 var request = require('request')
 var auth = require('./auth.js')
