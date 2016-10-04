@@ -1,9 +1,10 @@
 /**********************************
     Fake server for heroku
 **********************************/
+var lastTweet = ''
 var http = require('http')
 var handle = function (req, res) {
-    res.end("hello there")
+    res.end(lastTweet)
 }
 var server = http.createServer(handle)
 server.listen(process.env.PORT || 5000)
@@ -22,6 +23,7 @@ var tweet = function(tweetContent, fnSuccess){
     if(tweetContent.length > 140){
         tweetContent = tweetContent.substring(0, 137) + "..."
     }
+    lastTweet = tweetContent
     if(process.env.DEBUG) return fnSuccess(tweetContent)
     client.post('statuses/update', {status: tweetContent},  function(error, tweet, response){
         if(error){
@@ -212,6 +214,7 @@ function fnGamesScore(){
     setTimeout(fnGamesScore, 60000)
     // ping the server
     http.get("http://csgogames.herokuapp.com")
+    global.gc()
 }
 
 fnGamesScore()

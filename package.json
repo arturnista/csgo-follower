@@ -4,8 +4,8 @@
   "description": "Follow your CSGO games on twitter",
   "main": "index.js",
   "scripts": {
-    "test": "DEBUG=S node index.js",
-    "start": "node index.js"
+    "test": "DEBUG=S node --expose-gc index.js",
+    "start": "node --expose-gc index.js"
   },
   "repository": {
     "type": "git",
